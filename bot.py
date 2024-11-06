@@ -1,6 +1,6 @@
 from telethon import TelegramClient, events
 from telethon.errors import PeerFloodError, UserPrivacyRestrictedError, PhoneNumberBannedError, UserAlreadyParticipantError
-from telethon.tl.functions.channels import InviteToChannelRequest, JoinChannelRequest
+from telethon.tl.functions.channels import InviteToChannelRequest
 from telethon.tl.types import PeerChannel
 import pickle
 import time
@@ -8,8 +8,8 @@ import os
 import asyncio
 
 # Configurazioni API e HASH
-api_id = '21963510'
-api_hash = 'eddfccf6e4ea21255498028e5af25eb1'
+api_id = 'YOUR_API_ID'
+api_hash = 'YOUR_API_HASH'
 admin_id = 6849853752  # Sostituisci con l'ID autorizzato
 
 clients = []
@@ -98,6 +98,8 @@ async def handle_stop(event):
 async def main():
     await setup_clients()
     async with TelegramClient('bot', api_id, api_hash) as bot:
+        await bot.start(bot_token='YOUR_BOT_TOKEN')
+
         @bot.on(events.NewMessage(pattern='/start'))
         async def start(event):
             if event.sender_id == admin_id:
