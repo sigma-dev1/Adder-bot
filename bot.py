@@ -1,4 +1,4 @@
-from telethon.sync import TelegramClient, events
+from telethon import TelegramClient, events
 from telethon.errors import PeerFloodError, UserPrivacyRestrictedError, PhoneNumberBannedError, UserAlreadyParticipantError
 from telethon.tl.functions.channels import InviteToChannelRequest, JoinChannelRequest
 from telethon.tl.types import PeerChannel
@@ -27,14 +27,14 @@ def load_accounts():
     return accounts
 
 # Configura i client per ogni account
-def setup_clients():
+async def setup_clients():
     global clients
     accounts = load_accounts()
     for account in accounts:
         phone_number = account[0]
         client = TelegramClient(f'sessions/{phone_number}', api_id, api_hash)
-        client.connect()
-        if client.is_user_authorized():
+        await client.connect()
+        if await client.is_user_authorized():
             clients.append(client)
         else:
             print(f'{phone_number} is not authorized. Skipping.')
@@ -48,8 +48,7 @@ async def handle_start(event):
 async def handle_lista(event):
     response = "Lista dei gruppi:\n"
     for client in clients:
-        dialogs = await client.get_dialogs()
-        for dialog in dialogs:
+        async for dialog in client.iter_dialogs():
             if dialog.is_channel:
                 response += f"{dialog.entity.title} (ID: {dialog.entity.id})\n"
     await event.respond(response)
@@ -58,8 +57,7 @@ async def handle_lista(event):
 async def handle_ruba(event, group_id):
     with open('scraped_users.txt', 'w') as f:
         for client in clients:
-            participants = await client.get_participants(PeerChannel(group_id))
-            for user in participants:
+            async for user in client.iter_participants(PeerChannel(group_id)):
                 f.write(f"{user.id}\n")
     await event.respond(f"Utenti rubati dal gruppo {group_id}.")
 
@@ -98,7 +96,7 @@ async def handle_stop(event):
     await event.respond("Aggiunta di utenti fermata.")
 
 async def main():
-    setup_clients()
+    await setup_clients()
     async with TelegramClient('bot', api_id, api_hash) as bot:
         @bot.on(events.NewMessage(pattern='/start'))
         async def start(event):
