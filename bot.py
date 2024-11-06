@@ -1,5 +1,5 @@
 from telethon.sync import TelegramClient, events
-from telethon.errors import SessionPasswordNeededError, PeerFloodError, UserPrivacyRestrictedError, PhoneNumberBannedError, UserAlreadyParticipantError
+from telethon.errors import PeerFloodError, UserPrivacyRestrictedError, PhoneNumberBannedError, UserAlreadyParticipantError
 from telethon.tl.functions.channels import InviteToChannelRequest, JoinChannelRequest
 from telethon.tl.types import PeerChannel
 import pickle
@@ -8,11 +8,12 @@ import os
 import asyncio
 
 # Configurazioni API e HASH
-api_id = '21963510'
-api_hash = 'eddfccf6e4ea21255498028e5af25eb1'
+api_id = 'YOUR_API_ID'
+api_hash = 'YOUR_API_HASH'
 admin_id = 6849853752  # Sostituisci con l'ID autorizzato
 
 clients = []
+stop_adding = False
 
 # Carica gli account dal file vars.txt
 def load_accounts():
@@ -64,6 +65,7 @@ async def handle_ruba(event, group_id):
 
 # Gestione comando /add
 async def handle_add(event, target_group_id):
+    global stop_adding
     added_users = set()
     if os.path.exists('added_users.txt'):
         with open('added_users.txt', 'r') as f:
@@ -75,6 +77,9 @@ async def handle_add(event, target_group_id):
 
     for client in clients:
         for user_id in user_ids:
+            if stop_adding:
+                break
+
             if str(user_id.strip()) not in added_users:
                 try:
                     await client(InviteToChannelRequest(PeerChannel(target_group_id), [int(user_id.strip())]))
@@ -93,6 +98,7 @@ async def handle_stop(event):
     await event.respond("Aggiunta di utenti fermata.")
 
 async def main():
+    setup_clients()
     async with TelegramClient('bot', api_id, api_hash) as bot:
         @bot.on(events.NewMessage(pattern='/start'))
         async def start(event):
@@ -131,7 +137,6 @@ async def main():
             else:
                 await event.respond("Non sei autorizzato a usare questo comando.")
 
-        setup_clients()
         await bot.run_until_disconnected()
 
 if __name__ == '__main__':
