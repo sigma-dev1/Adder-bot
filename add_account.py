@@ -3,8 +3,8 @@ from telethon.errors import SessionPasswordNeededError
 import pickle
 import os
 
-api_id = 'YOUR_API_ID'
-api_hash = 'YOUR_API_HASH'
+api_id = '21963510'
+api_hash = 'eddfccf6e4ea21255498028e5af25eb1'
 
 # Assicurati che la cartella per le sessioni esista
 if not os.path.exists('sessions'):
