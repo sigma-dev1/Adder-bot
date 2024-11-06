@@ -9,7 +9,8 @@ import asyncio
 
 # Configurazioni API e HASH
 api_id = '21963510'
-api_hash = 'YOUR_API_HASH'
+api_hash = 'eddfccf6e4ea21255498028e5af25eb1'
+'
 admin_id = 6849853752  # Sostituisci con l'ID autorizzato
 
 clients = []
