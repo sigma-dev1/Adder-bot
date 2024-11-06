@@ -8,7 +8,7 @@ import os
 import asyncio
 
 # Configurazioni API e HASH
-api_id = 'YOUR_API_ID'
+api_id = '21963510'
 api_hash = 'YOUR_API_HASH'
 admin_id = 6849853752  # Sostituisci con l'ID autorizzato
 
