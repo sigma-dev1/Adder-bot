@@ -18,26 +18,36 @@ stop_adding = False
 # Carica gli account dal file vars.txt
 def load_accounts():
     accounts = []
-    with open('vars.txt', 'rb') as f:
-        while True:
-            try:
-                accounts.append(pickle.load(f))
-            except EOFError:
-                break
+    if os.path.exists('vars.txt'):
+        with open('vars.txt', 'rb') as f:
+            while True:
+                try:
+                    accounts.append(pickle.load(f))
+                except EOFError:
+                    break
     return accounts
 
-# Configura i client per ogni account
+# Configura i client per ogni account, utilizzando le sessioni salvate
 async def setup_clients():
     global clients
     accounts = load_accounts()
+    
     for account in accounts:
         phone_number = account[0]
-        client = TelegramClient(f'sessions/{phone_number}', api_id, api_hash)
+        session_file = f'sessions/{phone_number}.session'
+        
+        # Crea il client per ciascun account usando la sessione salvata
+        client = TelegramClient(session_file, api_id, api_hash)
         await client.connect()
+        
+        # Verifica se l'account è autorizzato
         if await client.is_user_authorized():
             clients.append(client)
+            print(f'Account {phone_number} autorizzato e aggiunto.')
         else:
-            print(f'{phone_number} is not authorized. Skipping.')
+            print(f'Account {phone_number} non è autorizzato. Saltato.')
+            await client.disconnect()  # Disconnette se non autorizzato
+    
     print(f'Set up {len(clients)} clients.')
 
 # Gestione comando /start
@@ -65,6 +75,7 @@ async def handle_ruba(event, group_id):
 async def handle_add(event, target_group_id):
     global stop_adding
     added_users = set()
+    
     if os.path.exists('added_users.txt'):
         with open('added_users.txt', 'r') as f:
             for line in f:
@@ -95,10 +106,13 @@ async def handle_stop(event):
     stop_adding = True
     await event.respond("Aggiunta di utenti fermata.")
 
+# Main function per avviare il bot con i comandi
 async def main():
     await setup_clients()
-    async with TelegramClient('bot', api_id, api_hash) as bot:
-        await bot.start(bot_token='YOUR_BOT_TOKEN')
+    
+    # Utilizza un singolo client per gestire i comandi, con il primo account
+    if clients:
+        bot = clients[0]
 
         @bot.on(events.NewMessage(pattern='/start'))
         async def start(event):
